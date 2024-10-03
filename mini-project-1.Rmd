@@ -1,8 +1,11 @@
 ---
 title: "Mini Data-Analysis Deliverable 1"
-output: html_document
+output: github_document
 ---
+```{r}
+?pivot_longer(names_to())
 
+```
 # Welcome to your (maybe) first-ever data analysis project!
 
 And hopefully the first of many. Let's get started:
@@ -84,10 +87,10 @@ And that is exactly the first thing that you will do!
 
 <!-------------------------- Start your work below ---------------------------->
 
-1: CHOICE_1\_HERE\
-2: CHOICE_2\_HERE\
-3: CHOICE_3\_HERE\
-4: CHOICE_4\_HERE
+1: vancouver_trees
+2: steam_games
+3: cancer_sample
+4: apt_buildings
 
 <!----------------------------------------------------------------------------->
 
@@ -98,8 +101,74 @@ And that is exactly the first thing that you will do!
 <!-------------------------- Start your work below ---------------------------->
 
 ```{r}
-### EXPLORE HERE ###
-steam_games
+#Exploration of Steam games
+  #Attribute 1
+glimpse(steam_games)
+#21 columns
+
+#Attribute 2
+numeric_var<- 
+  steam_games %>% select(where(is.numeric))
+head(numeric_var)
+#Only 4 of 21 columns hold numeric data 
+
+#Attribute 3
+steam_games %>%
+summarize(n=n())
+
+#filter(steam_games
+#40833 items
+```
+```{r}
+#Exploration of Vancouver trees
+#Attribute 1
+glimpse(vancouver_trees)
+#20 columns, #146611
+
+#Attribute 2
+numeric_var2<- 
+  vancouver_trees %>% select(where(is.numeric))
+head(numeric_var2)
+#7 columns hold numeric variables
+
+#Attribute 3
+vancouver_trees %>%
+summarize(n=n())
+#146611 samples
+```
+```{r}
+#Exploration of Cancer samples
+#Attribute 1
+glimpse(cancer_sample)
+#32 columns, #569 rows
+
+#Attribute 2
+numeric_var3<- 
+  cancer_sample %>% select(where(is.numeric))
+head(numeric_var3)
+#31 of 32 columns hold numeric variables
+
+#Attribute 3
+cancer_sample %>%
+summarize(n=n())
+#569 samples
+```
+```{r}
+#Exploration of apt buildings
+#Attribute 1
+glimpse(apt_buildings)
+#37 columns, #3455 rows
+
+#Attribute 2
+numeric_var4<- 
+ apt_buildings %>% select(where(is.numeric))
+head(numeric_var4)
+#9 of 37 columns hold numeric variables
+
+#Attribute 3
+apt_buildings %>%
+summarize(n=n())
+#3455 samples
 ```
 
 <!----------------------------------------------------------------------------->
@@ -107,13 +176,14 @@ steam_games
 1.3 **(1 point)** Now that you've explored the 4 datasets that you were initially most interested in, let's narrow it down to 1. What lead you to choose this one? Briefly explain your choice below.
 
 <!-------------------------- Start your work below ---------------------------->
+I am choosing to work with the apt_buildings data set because I feel that it is the most diverse data set. The other datasets I was interested in were heavily numeric or categorical data, whereas I feel the apt_buildings data set has the most numeric variables while having many interesting categorical variables. I think this will lead to more interesting investigations of the data. 
 
 <!----------------------------------------------------------------------------->
 
 1.4 **(2 points)** Time for a  final decision! Going back to the beginning, it's important to have an *end goal* in mind. For example, if I had chosen the `titanic` dataset for my project, I might've wanted to explore the relationship between survival and other variables. Try to think of 1 research question that you would want to answer with your dataset. Note it down below.
 
 <!-------------------------- Start your work below ---------------------------->
-
+_Is there a relationship between the age of the apartment building and other variables?_
 <!----------------------------------------------------------------------------->
 
 # Important note
@@ -130,18 +200,58 @@ If we rewind and go back to the learning objectives, you'll see that by the end 
 
 Make sure that you're using dplyr and ggplot2 rather than base R for this task. Outside of this project, you may find that you prefer using base R functions for certain tasks, and that's just fine! But part of this project is for you to practice the tools we learned in class, which is dplyr and ggplot2.
 
-1.  Plot the distribution of a numeric variable.
+1.  Plot the distribution of a numeric variable.*DONE
 2.  Create a new variable based on other variables in your data (only if it makes sense)
 3.  Investigate how many missing values there are per variable. Can you find a way to plot this?
-4.  Explore the relationship between 2 variables in a plot.
-5.  Filter observations in your data according to your own criteria. Think of what you'd like to explore - again, if this was the `titanic` dataset, I may want to narrow my search down to passengers born in a particular year...
-6.  Use a boxplot to look at the frequency of different observations within a single variable. You can do this for more than one variable if you wish!
-7.  Make a new tibble with a subset of your data, with variables and observations that you are interested in exploring.
+4.  Explore the relationship between 2 variables in a plot.*DONE
+5.  Filter observations in your data according to your own criteria. Think of what you'd like to explore - again, if this was the `titanic` dataset, I may want to narrow my search down to passengers born in a particular year... *DONE
+6.  Use a boxplot to look at the frequency of different observations within a single variable. You can do this for more than one variable if you wish! 
+7.  Make a new tibble with a subset of your data, with variables and observations that you are interested in exploring. *DONE
 8.  Use a density plot to explore any of your variables (that are suitable for this type of plot).
 
 2.2 **(4 points)** For each of the 4 exercises that you complete, provide a *brief explanation* of why you chose that exercise in relation to your data (in other words, why does it make sense to do that?), and sufficient comments for a reader to understand your reasoning and code.
 
 <!-------------------------- Start your work below ---------------------------->
+1. There are many numeric variables to plot. I can plot the distribution of apartment buildings with different #s of floors, units, or buildings constructed by decade.
+```{r}
+year_built_hist<- ggplot(apt_buildings, aes(year_built)) +
+  geom_histogram()
+print(year_built_hist)
+```
+
+
+4. I am interested to see if buildings built in a certain year will have certain amenities such as an elevator, garbage chute, underground parking etc. Exploring this relationship relates to my first research question and is important to investigate. Q: Does the age of the building affect the # of non-smoking buildings
+```{r}
+#
+Year_smoke <- apt_buildings %>%
+  ggplot(aes(`non-smoking_building`, year_built))+
+  geom_violin(aes(fill= `non-smoking_building`, alpha=0.1)) +
+  theme_minimal()
+print(Year_smoke)
+#This data may be skewed due to less buildings built recently, as shown by the previous histogram. 
+
+#Correlation between year built and # non smoking buildings
+
+```
+
+
+5.I could filter buildings that fit a certain criteria (ex, features I would 'NEED' in an apartment) to see how many units fit that description.
+```{r}
+Meets_req <- apt_buildings %>%
+  filter(balconies == "YES", laundry_room == "YES", no_of_elevators>=1, year_built>1980, `non-smoking_building` =="YES")
+head(Meets_req)
+```
+
+
+7.I could easily subset for apartment qualities I am interested in and subtract redundant columns (ex, columns where every apartment fulfills the requirement such as hot water + fire alarms). This will help me look at the differences in the data set rather than obvious similiarities. Since I already filtered for my requirements in an apartment, I want to see the listing # and address info for the available units.
+
+```{r}
+
+Apt_viewing <- Meets_req %>%
+  select(id, site_address, property_type, prop_management_company_name)
+head(Apt_viewing)
+
+```
 
 <!----------------------------------------------------------------------------->
 
@@ -150,6 +260,10 @@ Make sure that you're using dplyr and ggplot2 rather than base R for this task. 
 **(4 points)** So far, you have chosen a dataset and gotten familiar with it through exploring the data. You have also brainstormed one research question that interested you (Task 1.4).  Now it's time to pick 4 research questions that you would like to explore in Milestone 2! Write the 4 questions and any additional comments below. 
 
 <!--- *****START HERE***** --->
+1. What are the similarities, if any, between buildings of the same management company?
+2. Can this dataset be used to determine "safe" buildings (in terms of engineering + admin controls)?
+3. Are there correlations between property types and other variables?
+4. Do the proportions of certain variables change by year?
 
 <!----------------------------->
 
