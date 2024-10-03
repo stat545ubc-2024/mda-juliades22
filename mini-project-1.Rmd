@@ -3,7 +3,6 @@ title: "Mini Data-Analysis Deliverable 1"
 output: github_document
 ---
 ```{r}
-?pivot_longer(names_to())
 
 ```
 # Welcome to your (maybe) first-ever data analysis project!
@@ -86,7 +85,7 @@ And that is exactly the first thing that you will do!
 **Note**: We encourage you to use the ones in the `datateachr` package, but if you have a dataset that you'd really like to use, you can include it here. But, please check with a member of the teaching team to see whether the dataset is of appropriate complexity. Also, include a **brief** description of the dataset here to help the teaching team understand your data.
 
 <!-------------------------- Start your work below ---------------------------->
-
+### Potential Datasets that Interest me 
 1: vancouver_trees
 2: steam_games
 3: cancer_sample
@@ -100,8 +99,9 @@ And that is exactly the first thing that you will do!
 
 <!-------------------------- Start your work below ---------------------------->
 
+### Exploration of the dataset Steam Games
+
 ```{r}
-#Exploration of Steam games
   #Attribute 1
 glimpse(steam_games)
 #21 columns
@@ -119,8 +119,8 @@ summarize(n=n())
 #filter(steam_games
 #40833 items
 ```
+### Exploration of the dataset Vancouver Trees
 ```{r}
-#Exploration of Vancouver trees
 #Attribute 1
 glimpse(vancouver_trees)
 #20 columns, #146611
@@ -136,8 +136,8 @@ vancouver_trees %>%
 summarize(n=n())
 #146611 samples
 ```
+### Exploration of the dataset Cancer Samples
 ```{r}
-#Exploration of Cancer samples
 #Attribute 1
 glimpse(cancer_sample)
 #32 columns, #569 rows
@@ -153,6 +153,7 @@ cancer_sample %>%
 summarize(n=n())
 #569 samples
 ```
+### Exploration of the dataset Apt Buildings
 ```{r}
 #Exploration of apt buildings
 #Attribute 1
@@ -176,6 +177,7 @@ summarize(n=n())
 1.3 **(1 point)** Now that you've explored the 4 datasets that you were initially most interested in, let's narrow it down to 1. What lead you to choose this one? Briefly explain your choice below.
 
 <!-------------------------- Start your work below ---------------------------->
+### Choice of Dataset
 I am choosing to work with the apt_buildings data set because I feel that it is the most diverse data set. The other datasets I was interested in were heavily numeric or categorical data, whereas I feel the apt_buildings data set has the most numeric variables while having many interesting categorical variables. I think this will lead to more interesting investigations of the data. 
 
 <!----------------------------------------------------------------------------->
@@ -183,7 +185,7 @@ I am choosing to work with the apt_buildings data set because I feel that it is 
 1.4 **(2 points)** Time for a  final decision! Going back to the beginning, it's important to have an *end goal* in mind. For example, if I had chosen the `titanic` dataset for my project, I might've wanted to explore the relationship between survival and other variables. Try to think of 1 research question that you would want to answer with your dataset. Note it down below.
 
 <!-------------------------- Start your work below ---------------------------->
-_Is there a relationship between the age of the apartment building and other variables?_
+### _Is there a relationship between the age of the apartment building and other variables?_
 <!----------------------------------------------------------------------------->
 
 # Important note
@@ -212,15 +214,19 @@ Make sure that you're using dplyr and ggplot2 rather than base R for this task. 
 2.2 **(4 points)** For each of the 4 exercises that you complete, provide a *brief explanation* of why you chose that exercise in relation to your data (in other words, why does it make sense to do that?), and sufficient comments for a reader to understand your reasoning and code.
 
 <!-------------------------- Start your work below ---------------------------->
-1. There are many numeric variables to plot. I can plot the distribution of apartment buildings with different #s of floors, units, or buildings constructed by decade.
+### Answer to #1. 
+There are many numeric variables to plot. I can plot the distribution of apartment buildings with different #s of floors, units, or buildings constructed by decade.
+Here, I decided to see what the distribution of buildings built by year.
 ```{r}
 year_built_hist<- ggplot(apt_buildings, aes(year_built)) +
   geom_histogram()
 print(year_built_hist)
 ```
+The # buildings built over time seems to follow a normal distribution, with most buildings being built in ~the 1960s. 
 
+### Answer to #4
 
-4. I am interested to see if buildings built in a certain year will have certain amenities such as an elevator, garbage chute, underground parking etc. Exploring this relationship relates to my first research question and is important to investigate. Q: Does the age of the building affect the # of non-smoking buildings
+I am interested to see if buildings built in a certain year will have certain amenities such as an elevator or be labelled non-smoking. Exploring this relationship relates to my first research question and is important to investigate. Q: Does the age of the building affect the # of non-smoking buildings
 ```{r}
 #
 Year_smoke <- apt_buildings %>%
@@ -230,20 +236,18 @@ Year_smoke <- apt_buildings %>%
 print(Year_smoke)
 #This data may be skewed due to less buildings built recently, as shown by the previous histogram. 
 
-#Correlation between year built and # non smoking buildings
-
 ```
 
-
-5.I could filter buildings that fit a certain criteria (ex, features I would 'NEED' in an apartment) to see how many units fit that description.
+### Answer to #5
+I could filter buildings that fit a certain criteria (ex, features I would 'NEED' in an apartment) to see how many units fit that description.
 ```{r}
 Meets_req <- apt_buildings %>%
   filter(balconies == "YES", laundry_room == "YES", no_of_elevators>=1, year_built>1980, `non-smoking_building` =="YES")
 head(Meets_req)
 ```
 
-
-7.I could easily subset for apartment qualities I am interested in and subtract redundant columns (ex, columns where every apartment fulfills the requirement such as hot water + fire alarms). This will help me look at the differences in the data set rather than obvious similiarities. Since I already filtered for my requirements in an apartment, I want to see the listing # and address info for the available units.
+### Answer to #7
+I could easily subset for apartment qualities I am interested in and subtract redundant columns (ex, columns where every apartment fulfills the requirement such as hot water + fire alarms). This will help me look at the differences in the data set rather than obvious similarities. Since I already filtered for my requirements in an apartment, I want to see the listing # and address info for the available units.
 
 ```{r}
 
@@ -261,9 +265,9 @@ head(Apt_viewing)
 
 <!--- *****START HERE***** --->
 1. What are the similarities, if any, between buildings of the same management company?
-2. Can this dataset be used to determine "safe" buildings (in terms of engineering + admin controls)?
+2. Can this dataset be used to determine "safe" buildings (in terms of engineering and admin controls)?
 3. Are there correlations between property types and other variables?
-4. Do the proportions of certain variables change by year?
+4. Do the frequency of certain variables change by year?
 
 <!----------------------------->
 
