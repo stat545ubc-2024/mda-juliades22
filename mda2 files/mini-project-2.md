@@ -209,6 +209,7 @@ print(prop_bm)
 year_ward_TCH <- apt_buildings %>%
   select(prop_management_company_name, year_built, ward) %>%
   filter(prop_management_company_name == "TCH")
+
 print(year_ward_TCH)
 ```
 
@@ -275,23 +276,21 @@ safe_buildings <- apt_buildings %>%
     ## # ℹ 479 more rows
 
 ``` r
-#Summary Q 1
-summary_nonsmoke <- apt_buildings %>%
-  group_by(`non-smoking_building`) %>%
+#Summary Q1
+summary_safe <- safe_buildings %>%
   summarise(year_mean = mean(year_built, na.rm = TRUE), year_max = max(year_built, na.rm = TRUE), year_sd = sd(year_built, na.rm = TRUE), year_median = median(year_built, na.rm = TRUE))
-print(summary_nonsmoke)
+
+print(summary_safe)
 ```
 
-    ## # A tibble: 3 × 5
-    ##   `non-smoking_building` year_mean year_max year_sd year_median
-    ##   <chr>                      <dbl>    <dbl>   <dbl>       <dbl>
-    ## 1 NO                         1962.     2018    18.5        1962
-    ## 2 YES                        1962.     2019    19.8        1961
-    ## 3 <NA>                       1951.     2019    19.6        1954
+    ## # A tibble: 1 × 4
+    ##   year_mean year_max year_sd year_median
+    ##       <dbl>    <dbl>   <dbl>       <dbl>
+    ## 1     1974.     2019    17.1        1972
 
 ``` r
-#Graphing histogram of safe buildings and when they were built. (Q9)
-safe_build_year1 <- ggplot(safe_buildings, aes(year_built, after_stat(density))) +
+#Graphing histogram of safe buildings and when they were built (I decided to use the select data from the first summary, not based on summary Q1). (Q9)
+safe_build_year1 <- ggplot(safe_buildings, aes(year_built)) +
    geom_histogram(bins= 5)
 print(safe_build_year1)
 ```
@@ -302,7 +301,7 @@ print(safe_build_year1)
 ![](mini-project-2_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
 ``` r
-safe_build_year2 <- ggplot(safe_buildings, aes(year_built, after_stat(density))) +
+safe_build_year2 <- ggplot(safe_buildings, aes(year_built)) +
    geom_histogram(bins = 10)
 print(safe_build_year2)
 ```
@@ -313,8 +312,10 @@ print(safe_build_year2)
 ![](mini-project-2_files/figure-gfm/unnamed-chunk-4-2.png)<!-- -->
 
 ``` r
-safe_build_year3 <- ggplot(safe_buildings, aes(year_built, after_stat(density))) +
-   geom_histogram(bins = 30)
+safe_build_year3 <- ggplot(safe_buildings, aes(year_built)) +
+   geom_histogram(bins = 30) +
+  geom_vline(data = summary_safe, aes(xintercept = year_mean, colour = "red"))
+  
 print(safe_build_year3)
 ```
 
@@ -356,7 +357,7 @@ Q3:Are there correlations between property types and other variables?
 prop_nonsmoke <- apt_buildings %>%
   select(property_type, `non-smoking_building`) %>%
   group_by(`non-smoking_building`, property_type) %>%
-  summarise(n= n()) 
+  summarise(n= n())
 ```
 
     ## `summarise()` has grouped output by 'non-smoking_building'. You can override
@@ -399,8 +400,10 @@ print(proptype_correlation)
 ``` r
 #Graphing is easy with the cleaned up data set that I have made.(Q8)
 property_nonsmoke <- ggplot(prop_nonsmoke, aes(`non-smoking_building`, n)) +
-  geom_point(aes(colour = property_type)) + 
+  geom_col(aes(colour = property_type, fill = property_type)) + 
+  geom_text(aes(label=n)) +
   theme_minimal()
+
 print(property_nonsmoke)
 ```
 
@@ -418,50 +421,35 @@ Do the frequency of certain variables change by year?
 #Summary: I will use Q1: Compute the *range*, *mean*, and *two other summary statistics* of **one numerical variable** (year) across the groups of **one categorical variable** (heating type)
 heat_by_year <- apt_buildings %>%
   group_by(heating_type) %>%
-  summarise(year_mean = mean(year_built, na.rm = TRUE), year_range = range(year_built, na.rm = TRUE), year_sd = sd(year_built, na.rm = TRUE), year_median = median(year_built, na.rm = TRUE)) %>%
-  unique()
-```
+  summarise(year_mean = mean(year_built, na.rm = TRUE), year_max = max(year_built, na.rm = TRUE), year_sd = sd(year_built, na.rm = TRUE), year_median = median(year_built, na.rm = TRUE)) 
 
-    ## Warning: Returning more (or less) than 1 row per `summarise()` group was deprecated in
-    ## dplyr 1.1.0.
-    ## ℹ Please use `reframe()` instead.
-    ## ℹ When switching from `summarise()` to `reframe()`, remember that `reframe()`
-    ##   always returns an ungrouped data frame and adjust accordingly.
-    ## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
-    ## generated.
-
-    ## `summarise()` has grouped output by 'heating_type'. You can override using the
-    ## `.groups` argument.
-
-``` r
 print(heat_by_year)
 ```
 
-    ## # A tibble: 8 × 5
-    ## # Groups:   heating_type [4]
-    ##   heating_type   year_mean year_range year_sd year_median
-    ##   <chr>              <dbl>      <dbl>   <dbl>       <dbl>
-    ## 1 ELECTRIC           1967.       1838    24.5        1972
-    ## 2 ELECTRIC           1967.       2017    24.5        1972
-    ## 3 FORCED AIR GAS     1972.       1900    23.3        1968
-    ## 4 FORCED AIR GAS     1972.       2019    23.3        1968
-    ## 5 HOT WATER          1961.       1805    17.4        1960
-    ## 6 HOT WATER          1961.       2019    17.4        1960
-    ## 7 <NA>               1951.       1902    20.1        1954
-    ## 8 <NA>               1951.       2019    20.1        1954
+    ## # A tibble: 4 × 5
+    ##   heating_type   year_mean year_max year_sd year_median
+    ##   <chr>              <dbl>    <dbl>   <dbl>       <dbl>
+    ## 1 ELECTRIC           1967.     2017    24.5        1972
+    ## 2 FORCED AIR GAS     1972.     2019    23.3        1968
+    ## 3 HOT WATER          1961.     2019    17.4        1960
+    ## 4 <NA>               1951.     2019    20.1        1954
 
 ``` r
 #This shows me the trends in heating by year, where Hot water seems to be the oldest heating method, and forced air gas is the most modern.
 
-#Graphing: I will make a graph based on this data (Q8)
+#Graphing: I will make a graph based on this data (Q7 - jitter with alpha transparency)
 heat_types <- ggplot(apt_buildings, aes(heating_type, year_built)) + 
-  geom_boxplot(aes(colour = heating_type), width=0.2) +
+  geom_boxplot(aes(colour = heating_type), width=0.5) +
+  geom_jitter(aes(heating_type, year_built, colour= heating_type), width = 0.2, alpha = 0.2) +
   theme_minimal()
 print(heat_types)
 ```
 
     ## Warning: Removed 13 rows containing non-finite outside the scale range
     ## (`stat_boxplot()`).
+
+    ## Warning: Removed 13 rows containing missing values or values outside the scale range
+    ## (`geom_point()`).
 
 ![](mini-project-2_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
@@ -531,7 +519,7 @@ and “after”.
 <!--------------------------- Start your work below --------------------------->
 
 ``` r
-#First, I will make a tibble of 8 columns that are tidy. Then, I will un-tidy the data by expanding (pivot_wider) based on ___
+#First, I will make a tibble of 8 columns that are tidy. Then, I will un-tidy the data by expanding (pivot_wider) based on if they are non-smoking
 
 tidy_tbl <- apt_buildings %>%
   select(id, site_address, property_type, `non-smoking_building`, no_of_units, year_built, no_of_storeys, ward)
@@ -586,24 +574,26 @@ print(untidy_tbl)
 retidy_tbl <- untidy_tbl %>%
   pivot_longer(cols = c('YES', 'NO', 'NA'), 
                names_to = "`non-smoking_building`",
-               values_to = ("year_built"))
+               values_to = ("year_built")) %>%
+  filter(!year_built == "NA")
+
 print(retidy_tbl)
 ```
 
-    ## # A tibble: 10,365 × 8
+    ## # A tibble: 3,442 × 8
     ##       id site_address         property_type no_of_units no_of_storeys ward 
     ##    <dbl> <chr>                <chr>               <dbl>         <dbl> <chr>
     ##  1 10359 65  FOREST MANOR RD  PRIVATE               218            17 17   
-    ##  2 10359 65  FOREST MANOR RD  PRIVATE               218            17 17   
-    ##  3 10359 65  FOREST MANOR RD  PRIVATE               218            17 17   
-    ##  4 10360 70  CLIPPER RD       PRIVATE               206            14 17   
-    ##  5 10360 70  CLIPPER RD       PRIVATE               206            14 17   
-    ##  6 10360 70  CLIPPER RD       PRIVATE               206            14 17   
-    ##  7 10361 2651  BLOOR ST W     PRIVATE                34             4 03   
-    ##  8 10361 2651  BLOOR ST W     PRIVATE                34             4 03   
-    ##  9 10361 2651  BLOOR ST W     PRIVATE                34             4 03   
-    ## 10 10362 22  BURNHAMTHORPE RD PRIVATE                42             5 03   
-    ## # ℹ 10,355 more rows
+    ##  2 10360 70  CLIPPER RD       PRIVATE               206            14 17   
+    ##  3 10361 2651  BLOOR ST W     PRIVATE                34             4 03   
+    ##  4 10362 22  BURNHAMTHORPE RD PRIVATE                42             5 03   
+    ##  5 10363 18  ANGLESEY BLVD    PRIVATE                25             4 02   
+    ##  6 10364 308  THE KINGSWAY    PRIVATE                34             4 02   
+    ##  7 10365 3  BEXHILL CRT       PRIVATE                14             4 02   
+    ##  8 10366 41  WARRENDER AVE    PRIVATE               105             7 02   
+    ##  9 10367 280  WELLESLEY ST E  PRIVATE               571            32 13   
+    ## 10 10368 11  ARLETA AVE       TCHC                  171             4 07   
+    ## # ℹ 3,432 more rows
     ## # ℹ 2 more variables: `\`non-smoking_building\`` <chr>, year_built <dbl>
 
 <!----------------------------------------------------------------------------->
@@ -658,7 +648,8 @@ apt_tidy <- apt_buildings %>%
   filter(pets_allowed == c("YES","NO")) %>%
   mutate(units_by_storeys = no_of_units/no_of_storeys) %>%
   arrange(year_built) %>%
-  mutate(build_age = 2024 - year_built)
+  mutate(build_age = 2024 - year_built) %>%
+  drop_na()
 ```
 
     ## Warning: There was 1 warning in `filter()`.
@@ -670,7 +661,7 @@ apt_tidy <- apt_buildings %>%
   print(apt_tidy)
 ```
 
-    ## # A tibble: 824 × 9
+    ## # A tibble: 823 × 9
     ##    year_built property_type `non-smoking_building` pets_allowed no_of_units
     ##         <dbl> <chr>         <chr>                  <chr>              <dbl>
     ##  1       1890 PRIVATE       NO                     YES                   16
@@ -683,7 +674,7 @@ apt_tidy <- apt_buildings %>%
     ##  8       1910 PRIVATE       YES                    YES                   10
     ##  9       1910 PRIVATE       NO                     YES                   18
     ## 10       1910 PRIVATE       NO                     YES                   44
-    ## # ℹ 814 more rows
+    ## # ℹ 813 more rows
     ## # ℹ 4 more variables: no_of_storeys <dbl>, ward <chr>, units_by_storeys <dbl>,
     ## #   build_age <dbl>
 
@@ -726,7 +717,7 @@ specifics in STAT 545.
 
 <!-------------------------- Start your work below ---------------------------->
 
-#### Question 1.3 Answer
+#### Question 3.1 Answer
 
 I want to consider the difference between three groups: the three
 property types. To do this, I need to run an ANOVA with unit \#s for
@@ -737,9 +728,9 @@ property_by_units <- aov(no_of_units ~ property_type, data=apt_tidy)
 summary(property_by_units)
 ```
 
-    ##                Df  Sum Sq Mean Sq F value  Pr(>F)    
-    ## property_type   2  152285   76143   9.214 0.00011 ***
-    ## Residuals     821 6784761    8264                    
+    ##                Df  Sum Sq Mean Sq F value   Pr(>F)    
+    ## property_type   2  151727   75864   9.176 0.000115 ***
+    ## Residuals     820 6779624    8268                     
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -777,8 +768,8 @@ print(broom_anova)
     ## # A tibble: 2 × 6
     ##   term             df    sumsq meansq statistic   p.value
     ##   <chr>         <dbl>    <dbl>  <dbl>     <dbl>     <dbl>
-    ## 1 property_type     2  152285. 76143.      9.21  0.000110
-    ## 2 Residuals       821 6784761.  8264.     NA    NA
+    ## 1 property_type     2  151727. 75864.      9.18  0.000115
+    ## 2 Residuals       820 6779624.  8268.     NA    NA
 
 The P-value is \<0.001, which indicates high significance. This is
 identified in the far right column of the tibble produced from
@@ -807,7 +798,8 @@ file in your `output` folder. Use the `here::here()` function.
 <!-------------------------- Start your work below ---------------------------->
 
 ``` r
-write_csv(prop_nonsmoke, "exported_prop_nonsmoke.csv")
+write_csv(prop_nonsmoke, 
+          file = here::here("Output", "exported_prop_nonsmoke.csv"))
 ```
 
 <!----------------------------------------------------------------------------->
@@ -823,8 +815,16 @@ Use the functions `saveRDS()` and `readRDS()`.
 <!-------------------------- Start your work below ---------------------------->
 
 ``` r
-write_rds(broom_anova, file = "aov_proptype_units")
+saveRDS(broom_anova, 
+        file = here::here("output", "aov_proptype_units.rds"))
+readRDS(here::here("Output", "aov_proptype_units.rds"))
 ```
+
+    ## # A tibble: 2 × 6
+    ##   term             df    sumsq meansq statistic   p.value
+    ##   <chr>         <dbl>    <dbl>  <dbl>     <dbl>     <dbl>
+    ## 1 property_type     2  151727. 75864.      9.18  0.000115
+    ## 2 Residuals       820 6779624.  8268.     NA    NA
 
 <!----------------------------------------------------------------------------->
 

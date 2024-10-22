@@ -117,6 +117,7 @@ print(prop_bm)
 year_ward_TCH <- apt_buildings %>%
   select(prop_management_company_name, year_built, ward) %>%
   filter(prop_management_company_name == "TCH")
+
 print(year_ward_TCH)
 
 year_by_ward <- ggplot(year_ward_TCH, aes(ward, year_built)) +
@@ -135,26 +136,29 @@ Q2: Can this dataset be used to determine "safe" buildings (in terms of engineer
 
 safe_buildings <- apt_buildings %>%
   filter(fire_alarm == "YES", sprinkler_system == "YES", emergency_power == "YES", `non-smoking_building`=="YES") %>%
-  select(id, year_built) %>%
-print(safe_buildings)
+  select(id, year_built) 
 
-#Summary Q 1
-summary_nonsmoke <- apt_buildings %>%
-  group_by(`non-smoking_building`) %>%
+  print(safe_buildings)
+
+#Summary Q1
+summary_safe <- safe_buildings %>%
   summarise(year_mean = mean(year_built, na.rm = TRUE), year_max = max(year_built, na.rm = TRUE), year_sd = sd(year_built, na.rm = TRUE), year_median = median(year_built, na.rm = TRUE))
-print(summary_nonsmoke)
 
-#Graphing histogram of safe buildings and when they were built. (Q9)
-safe_build_year1 <- ggplot(safe_buildings, aes(year_built, after_stat(density))) +
+print(summary_safe)
+
+#Graphing histogram of safe buildings and when they were built (I decided to use the select data from the first summary, not based on summary Q1). (Q9)
+safe_build_year1 <- ggplot(safe_buildings, aes(year_built)) +
    geom_histogram(bins= 5)
 print(safe_build_year1)
 
-safe_build_year2 <- ggplot(safe_buildings, aes(year_built, after_stat(density))) +
+safe_build_year2 <- ggplot(safe_buildings, aes(year_built)) +
    geom_histogram(bins = 10)
 print(safe_build_year2)
 
-safe_build_year3 <- ggplot(safe_buildings, aes(year_built, after_stat(density))) +
-   geom_histogram(bins = 30)
+safe_build_year3 <- ggplot(safe_buildings, aes(year_built)) +
+   geom_histogram(bins = 30) +
+  geom_vline(data = summary_safe, aes(xintercept = year_mean, colour = "red"))
+  
 print(safe_build_year3)
 
 #I find that safe_build_year3 is the best spread of values and is the most comparable to the original histogram of the Years_built. 
@@ -179,7 +183,8 @@ Q3:Are there correlations between property types and other variables?
 prop_nonsmoke <- apt_buildings %>%
   select(property_type, `non-smoking_building`) %>%
   group_by(`non-smoking_building`, property_type) %>%
-  summarise(n= n()) %>%
+  summarise(n= n())
+
   
 print(prop_nonsmoke)
 
@@ -188,11 +193,14 @@ proptype_correlation <- prop_nonsmoke %>%
   pivot_wider(names_from = property_type, values_from = n )
   
 print(proptype_correlation)
-  
+
+
 #Graphing is easy with the cleaned up data set that I have made.(Q8)
 property_nonsmoke <- ggplot(prop_nonsmoke, aes(`non-smoking_building`, n)) +
-  geom_point(aes(colour = property_type)) + 
+  geom_col(aes(colour = property_type, fill = property_type)) + 
+  geom_text(aes(label=n)) +
   theme_minimal()
+
 print(property_nonsmoke)
 
 #This shows trends between the property types and if they allow smoking. Most buildings are private property, a small fraction of private properties are smoke-free. TCHC buildings have more smoke-free than smoke-friendly units. 
@@ -205,16 +213,16 @@ Do the frequency of certain variables change by year?
 #Summary: I will use Q1: Compute the *range*, *mean*, and *two other summary statistics* of **one numerical variable** (year) across the groups of **one categorical variable** (heating type)
 heat_by_year <- apt_buildings %>%
   group_by(heating_type) %>%
-  summarise(year_mean = mean(year_built, na.rm = TRUE), year_range = range(year_built, na.rm = TRUE), year_sd = sd(year_built, na.rm = TRUE), year_median = median(year_built, na.rm = TRUE)) %>%
-  unique()
+  summarise(year_mean = mean(year_built, na.rm = TRUE), year_max = max(year_built, na.rm = TRUE), year_sd = sd(year_built, na.rm = TRUE), year_median = median(year_built, na.rm = TRUE)) 
 
 print(heat_by_year)
 
 #This shows me the trends in heating by year, where Hot water seems to be the oldest heating method, and forced air gas is the most modern.
 
-#Graphing: I will make a graph based on this data (Q8)
+#Graphing: I will make a graph based on this data (Q7 - jitter with alpha transparency)
 heat_types <- ggplot(apt_buildings, aes(heating_type, year_built)) + 
-  geom_boxplot(aes(colour = heating_type), width=0.2) +
+  geom_boxplot(aes(colour = heating_type), width=0.5) +
+  geom_jitter(aes(heating_type, year_built, colour= heating_type), width = 0.2, alpha = 0.2) +
   theme_minimal()
 print(heat_types)
   
@@ -262,7 +270,7 @@ Be sure to explain your reasoning for this task. Show us the "before" and "after
 
 <!--------------------------- Start your work below --------------------------->
 ```{r}
-#First, I will make a tibble of 8 columns that are tidy. Then, I will un-tidy the data by expanding (pivot_wider) based on ___
+#First, I will make a tibble of 8 columns that are tidy. Then, I will un-tidy the data by expanding (pivot_wider) based on if they are non-smoking
 
 tidy_tbl <- apt_buildings %>%
   select(id, site_address, property_type, `non-smoking_building`, no_of_units, year_built, no_of_storeys, ward)
@@ -280,7 +288,9 @@ print(untidy_tbl)
 retidy_tbl <- untidy_tbl %>%
   pivot_longer(cols = c('YES', 'NO', 'NA'), 
                names_to = "`non-smoking_building`",
-               values_to = ("year_built"))
+               values_to = ("year_built")) %>%
+  filter(!year_built == "NA")
+
 print(retidy_tbl)
 
 ```
@@ -319,7 +329,8 @@ apt_tidy <- apt_buildings %>%
   filter(pets_allowed == c("YES","NO")) %>%
   mutate(units_by_storeys = no_of_units/no_of_storeys) %>%
   arrange(year_built) %>%
-  mutate(build_age = 2024 - year_built)
+  mutate(build_age = 2024 - year_built) %>%
+  drop_na()
 
   print(apt_tidy)
 
@@ -351,7 +362,7 @@ Fit a model or run a hypothesis test that provides insight on this variable with
     -   You could use `lm()` to test for significance of regression coefficients.
 
 <!-------------------------- Start your work below ---------------------------->
-#### Question 1.3 Answer
+#### Question 3.1 Answer
 I want to consider the difference between three groups: the three property types. To do this, I need to run an ANOVA with unit #s for each type
 ```{r}
 property_by_units <- aov(no_of_units ~ property_type, data=apt_tidy)
@@ -397,7 +408,9 @@ Take a summary table that you made from Task 1, and write it as a csv file in yo
 
 <!-------------------------- Start your work below ---------------------------->
 ```{r} 
-write_csv(prop_nonsmoke, "exported_prop_nonsmoke.csv")
+
+write_csv(prop_nonsmoke, 
+          file = here::here("Output", "exported_prop_nonsmoke.csv"))
 
 
 ```
@@ -411,7 +424,9 @@ Write your model object from Task 3 to an R binary file (an RDS), and load it ag
 
 <!-------------------------- Start your work below ---------------------------->
 ```{r} 
-write_rds(broom_anova, file = "aov_proptype_units")
+saveRDS(broom_anova, 
+        file = here::here("output", "aov_proptype_units.rds"))
+readRDS(here::here("Output", "aov_proptype_units.rds"))
 
 ```
 <!----------------------------------------------------------------------------->
