@@ -93,9 +93,11 @@ Make sure it's clear what research question you are doing each operation for!
 
 <!------------------------- Start your work below ----------------------------->
 ```{r}
+#Table of apt dataset to check in with while working
 head(apt_buildings, n=30)
 
 ```
+
 #### Question 1 Summary & Graphing
 Q1: What are the similarities, if any, between buildings of the same management company? There are many management companies, so I will instead look at a building management company and look at the spread of values for a few parameters (year built, ward)
 ```{r}
@@ -108,7 +110,7 @@ prop_bm <- apt_buildings %>%
   mutate(freq = n/sum(n))
 
 print(prop_bm)
-#1363 buildings do not have a property manager. The second highest has 115 and is TCH.
+#filtered for large management companies. 1363 buildings do not have a property manager. The second highest has 115 and is TCH.
 
 #Graphing the wards and year built for TCH buildings (7, need alpha transparency)
 
@@ -136,7 +138,13 @@ safe_buildings <- apt_buildings %>%
   select(id, year_built) %>%
 print(safe_buildings)
 
-#Graphing histogram of
+#Summary Q 1
+summary_nonsmoke <- apt_buildings %>%
+  group_by(`non-smoking_building`) %>%
+  summarise(year_mean = mean(year_built, na.rm = TRUE), year_max = max(year_built, na.rm = TRUE), year_sd = sd(year_built, na.rm = TRUE), year_median = median(year_built, na.rm = TRUE))
+print(summary_nonsmoke)
+
+#Graphing histogram of safe buildings and when they were built. (Q9)
 safe_build_year1 <- ggplot(safe_buildings, aes(year_built, after_stat(density))) +
    geom_histogram(bins= 5)
 print(safe_build_year1)
@@ -174,22 +182,20 @@ prop_nonsmoke <- apt_buildings %>%
   summarise(n= n()) %>%
   
 print(prop_nonsmoke)
-#Now, I can expand the tibble to have separate rows for each property type
+
+#Now, I can expand the tibble to have separate rows for each property type (Q3)
 proptype_correlation <- prop_nonsmoke %>%
   pivot_wider(names_from = property_type, values_from = n )
   
-  #select(property_type, `non-smoking_building`, pets_allowed) %>%
-  #group_by(property_type) %>%
-  
-
 print(proptype_correlation)
   
-#Graphing is easy with the cleaned up data set that I have made.
+#Graphing is easy with the cleaned up data set that I have made.(Q8)
 property_nonsmoke <- ggplot(prop_nonsmoke, aes(`non-smoking_building`, n)) +
-  geom_point(aes(colour = property_type))
+  geom_point(aes(colour = property_type)) + 
+  theme_minimal()
 print(property_nonsmoke)
 
-#This shows trends between the property types and if they allow smoking
+#This shows trends between the property types and if they allow smoking. Most buildings are private property, a small fraction of private properties are smoke-free. TCHC buildings have more smoke-free than smoke-friendly units. 
 
 ```
 
@@ -206,7 +212,7 @@ print(heat_by_year)
 
 #This shows me the trends in heating by year, where Hot water seems to be the oldest heating method, and forced air gas is the most modern.
 
-#Graphing: I will make a graph based on this data 
+#Graphing: I will make a graph based on this data (Q8)
 heat_types <- ggplot(apt_buildings, aes(heating_type, year_built)) + 
   geom_boxplot(aes(colour = heating_type), width=0.2) +
   theme_minimal()
@@ -348,7 +354,6 @@ Fit a model or run a hypothesis test that provides insight on this variable with
 #### Question 1.3 Answer
 I want to consider the difference between three groups: the three property types. To do this, I need to run an ANOVA with unit #s for each type
 ```{r}
-?lm
 property_by_units <- aov(no_of_units ~ property_type, data=apt_tidy)
 summary(property_by_units)
 
@@ -391,7 +396,11 @@ Take a summary table that you made from Task 1, and write it as a csv file in yo
 -   **Reproducibility criteria**: You should be able to delete the csv file, and remake it simply by knitting this Rmd file.
 
 <!-------------------------- Start your work below ---------------------------->
+```{r} 
+write_csv(prop_nonsmoke, "exported_prop_nonsmoke.csv")
 
+
+```
 <!----------------------------------------------------------------------------->
 
 ## 4.2 (3 points)
@@ -401,7 +410,10 @@ Write your model object from Task 3 to an R binary file (an RDS), and load it ag
 -   The same robustness and reproducibility criteria as in 4.1 apply here.
 
 <!-------------------------- Start your work below ---------------------------->
+```{r} 
+write_rds(broom_anova, file = "aov_proptype_units")
 
+```
 <!----------------------------------------------------------------------------->
 
 # Overall Reproducibility/Cleanliness/Coherence Checklist 
