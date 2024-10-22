@@ -56,10 +56,10 @@ From milestone 1, you should have an idea of the basic structure of your dataset
 First, write out the 4 research questions you defined in milestone 1 were. This will guide your work through milestone 2:
 
 <!-------------------------- Start your work below ---------------------------->
-1. *FILL_THIS_IN*
-2. *FILL_THIS_IN*
-3. *FILL_THIS_IN*
-4. *FILL_THIS_IN*
+1. What are the similarities, if any, between buildings of the same management company?
+2. Can this dataset be used to determine "safe" buildings (in terms of engineering and admin controls)?
+3. Are there correlations between property types and other variables?
+4. Do the frequency of certain variables change by year?
 <!----------------------------------------------------------------------------->
 
 Here, we will investigate your data using various data manipulation and graphing functions.
@@ -92,6 +92,130 @@ Using variables and/or tables you made in one of the "Summarizing" tasks:
 Make sure it's clear what research question you are doing each operation for!
 
 <!------------------------- Start your work below ----------------------------->
+```{r}
+head(apt_buildings, n=30)
+
+```
+#### Question 1 Summary & Graphing
+Q1: What are the similarities, if any, between buildings of the same management company? There are many management companies, so I will instead look at a building management company and look at the spread of values for a few parameters (year built, ward)
+```{r}
+
+#Finding building manager with most buildings (Q2: #obs for one category)
+prop_bm <- apt_buildings %>%
+  group_by(prop_management_company_name) %>%
+  summarise(n=n()) %>%
+  filter(n>50) %>%
+  mutate(freq = n/sum(n))
+
+print(prop_bm)
+#1363 buildings do not have a property manager. The second highest has 115 and is TCH.
+
+#Graphing the wards and year built for TCH buildings (7, need alpha transparency)
+
+year_ward_TCH <- apt_buildings %>%
+  select(prop_management_company_name, year_built, ward) %>%
+  filter(prop_management_company_name == "TCH")
+print(year_ward_TCH)
+
+year_by_ward <- ggplot(year_ward_TCH, aes(ward, year_built)) +
+  geom_point(alpha = 0.5, width = 0.1)
+
+print(year_by_ward)
+
+#I can tell from the density of the points that TCH mostly has buildings in wards 8, 13, and 19. Also, I can see that all modern buildings (built after 2000) are in wards 12, 13 and 14.
+
+```
+
+
+#### Question 2 Summary & Graphing
+Q2: Can this dataset be used to determine "safe" buildings (in terms of engineering and admin controls)? I will narrow down a list of buildings and produce a histogram of the year built of the "safe" buildings. 
+```{r}
+
+safe_buildings <- apt_buildings %>%
+  filter(fire_alarm == "YES", sprinkler_system == "YES", emergency_power == "YES", `non-smoking_building`=="YES") %>%
+  select(id, year_built) %>%
+print(safe_buildings)
+
+#Graphing histogram of
+safe_build_year1 <- ggplot(safe_buildings, aes(year_built, after_stat(density))) +
+   geom_histogram(bins= 5)
+print(safe_build_year1)
+
+safe_build_year2 <- ggplot(safe_buildings, aes(year_built, after_stat(density))) +
+   geom_histogram(bins = 10)
+print(safe_build_year2)
+
+safe_build_year3 <- ggplot(safe_buildings, aes(year_built, after_stat(density))) +
+   geom_histogram(bins = 30)
+print(safe_build_year3)
+
+#I find that safe_build_year3 is the best spread of values and is the most comparable to the original histogram of the Years_built. 
+```
+
+As a reminder, the plot of all buildings by year is:
+```{r} 
+year_built_hist<- ggplot(apt_buildings, aes(year_built)) +
+  geom_histogram()
+print(year_built_hist)
+
+#actually more of a spread of the "safe buildings" than the overall buildings over years
+```
+
+
+
+#### Question 3 Summary & Graphing
+Q3:Are there correlations between property types and other variables?
+```{r}
+# To do this, I can group by property type and calculate the # and frequency of different results. This can tell me, for example, if private properties are more or less smoking and/or pet friendly. 
+
+prop_nonsmoke <- apt_buildings %>%
+  select(property_type, `non-smoking_building`) %>%
+  group_by(`non-smoking_building`, property_type) %>%
+  summarise(n= n()) %>%
+  
+print(prop_nonsmoke)
+#Now, I can expand the tibble to have separate rows for each property type
+proptype_correlation <- prop_nonsmoke %>%
+  pivot_wider(names_from = property_type, values_from = n )
+  
+  #select(property_type, `non-smoking_building`, pets_allowed) %>%
+  #group_by(property_type) %>%
+  
+
+print(proptype_correlation)
+  
+#Graphing is easy with the cleaned up data set that I have made.
+property_nonsmoke <- ggplot(prop_nonsmoke, aes(`non-smoking_building`, n)) +
+  geom_point(aes(colour = property_type))
+print(property_nonsmoke)
+
+#This shows trends between the property types and if they allow smoking
+
+```
+
+#### Question 4 Summary and Graphing
+Do the frequency of certain variables change by year?
+```{r}
+#Summary: I will use Q1: Compute the *range*, *mean*, and *two other summary statistics* of **one numerical variable** (year) across the groups of **one categorical variable** (heating type)
+heat_by_year <- apt_buildings %>%
+  group_by(heating_type) %>%
+  summarise(year_mean = mean(year_built, na.rm = TRUE), year_range = range(year_built, na.rm = TRUE), year_sd = sd(year_built, na.rm = TRUE), year_median = median(year_built, na.rm = TRUE)) %>%
+  unique()
+
+print(heat_by_year)
+
+#This shows me the trends in heating by year, where Hot water seems to be the oldest heating method, and forced air gas is the most modern.
+
+#Graphing: I will make a graph based on this data 
+heat_types <- ggplot(apt_buildings, aes(heating_type, year_built)) + 
+  geom_boxplot(aes(colour = heating_type), width=0.2) +
+  theme_minimal()
+print(heat_types)
+  
+
+
+
+```
 
 <!----------------------------------------------------------------------------->
 
@@ -100,7 +224,7 @@ Make sure it's clear what research question you are doing each operation for!
 Based on the operations that you've completed, how much closer are you to answering your research questions? Think about what aspects of your research questions remain unclear. Can your research questions be refined, now that you've investigated your data a bit more? Which research questions are yielding interesting results?
 
 <!------------------------- Write your answer here ---------------------------->
-
+I believe I have answered part of my questions, some of them are difficult to get to the root of. I understand which companies own most property, what buildings are considered "safe" and how that relates to their year of construction, I also was able to find how many buildings were non-smoking by property type and how the year of construction related to the heating type. My initial inquiry was about how the year_built related to other factors, and I believe I have explored this well. I would like to evaluate other numerical variables more, such as volume of units + stories in relation to the property manager, property type, or building "safety". 
 
 <!----------------------------------------------------------------------------->
 
@@ -119,7 +243,7 @@ A reminder of the definition of *tidy* data:
 Based on the definition above, can you identify if your data is tidy or untidy? Go through all your columns, or if you have \>8 variables, just pick 8, and explain whether the data is untidy or tidy.
 
 <!--------------------------- Start your work below --------------------------->
-
+I think this data is tidy, it has more than 8 variables and many of the observations are N/A, however, it is still Tidy. Each column is a variable, each row is a specific id (apartment ID) and each cell represents an observation, even if those observations are N/A. Columns ex: ID, site address, property type, non-smoking_building, no_of_units, year_built, no_of_storeys, ward.
 <!----------------------------------------------------------------------------->
 
 ### 2.2 (4 points)
@@ -131,7 +255,29 @@ If your data is untidy, then tidy it! Then, untidy it back to it's original stat
 Be sure to explain your reasoning for this task. Show us the "before" and "after".
 
 <!--------------------------- Start your work below --------------------------->
+```{r}
+#First, I will make a tibble of 8 columns that are tidy. Then, I will un-tidy the data by expanding (pivot_wider) based on ___
 
+tidy_tbl <- apt_buildings %>%
+  select(id, site_address, property_type, `non-smoking_building`, no_of_units, year_built, no_of_storeys, ward)
+print(tidy_tbl)
+
+#Un-tidying!
+
+untidy_tbl <- tidy_tbl %>%
+  pivot_wider(names_from = `non-smoking_building`, values_from = year_built)
+print(untidy_tbl)
+#This tbl is untidy because there lacks an observation for at least two columns of the "smoking" status for each year, as each building can only belong to one of the categories. It does not make sense to show the data like this. 
+
+#Tidy it back!
+
+retidy_tbl <- untidy_tbl %>%
+  pivot_longer(cols = c('YES', 'NO', 'NA'), 
+               names_to = "`non-smoking_building`",
+               values_to = ("year_built"))
+print(retidy_tbl)
+
+```
 <!----------------------------------------------------------------------------->
 
 ### 2.3 (4 points)
@@ -140,14 +286,15 @@ Now, you should be more familiar with your data, and also have made progress in 
 
 <!-------------------------- Start your work below ---------------------------->
 
-1.  *FILL_THIS_IN*
-2.  *FILL_THIS_IN*
+1  Are there correlations between property types and other variables?
+2. Do the frequency of certain variables change by year?
 
 <!----------------------------------------------------------------------------->
 
 Explain your decision for choosing the above two research questions.
 
 <!--------------------------- Start your work below --------------------------->
+I found it the easiest to work with the property type data and I still think it is interesting to look at how frequencies of certain groups can change by year. I would like to connect these more to the data on units, storeys, and wards (focus on numerical data) as I continue. 
 
 <!----------------------------------------------------------------------------->
 
@@ -156,6 +303,22 @@ Now, try to choose a version of your data that you think will be appropriate to 
 (If it makes more sense, then you can make/pick two versions of your data, one for each research question.) 
 
 <!--------------------------- Start your work below --------------------------->
+#### Choosing a version of my data to work with!
+I would like to focus on numerical data and potentially expand some of the categorical groups into their own columns. 
+To do: Select only important columns (8?), filter out rows with "NA" (non-smoke), mutate to add a column of age of the building, add column for ratio of units/storeys. 
+```{r}
+apt_tidy <- apt_buildings %>%
+  select(year_built, property_type, `non-smoking_building`, pets_allowed, no_of_units, no_of_storeys, ward) %>%
+  filter(`non-smoking_building`== c("YES","NO")) %>%
+  filter(pets_allowed == c("YES","NO")) %>%
+  mutate(units_by_storeys = no_of_units/no_of_storeys) %>%
+  arrange(year_built) %>%
+  mutate(build_age = 2024 - year_built)
+
+  print(apt_tidy)
+
+```
+
 
 # Task 3: Modelling
 
@@ -165,9 +328,9 @@ Pick a research question from 1.2, and pick a variable of interest (we'll call i
 
 <!-------------------------- Start your work below ---------------------------->
 
-**Research Question**: FILL_THIS_IN
+**Research Question**: Are there correlations between property types and other variables?
 
-**Variable of interest**: FILL_THIS_IN
+**Variable of interest**: #units
 
 <!----------------------------------------------------------------------------->
 
@@ -182,6 +345,16 @@ Fit a model or run a hypothesis test that provides insight on this variable with
     -   You could use `lm()` to test for significance of regression coefficients.
 
 <!-------------------------- Start your work below ---------------------------->
+#### Question 1.3 Answer
+I want to consider the difference between three groups: the three property types. To do this, I need to run an ANOVA with unit #s for each type
+```{r}
+?lm
+property_by_units <- aov(no_of_units ~ property_type, data=apt_tidy)
+summary(property_by_units)
+
+#This shows me that there is a significant effect of property type on the # units in a building.
+
+```
 
 <!----------------------------------------------------------------------------->
 
@@ -194,6 +367,15 @@ Produce something relevant from your fitted model: either predictions on Y, or a
 -   Obtain your results using the `broom` package if possible. If your model is not compatible with the broom function you're needing, then you can obtain your results by some other means, but first indicate which broom function is not compatible.
 
 <!-------------------------- Start your work below ---------------------------->
+####Relevance of model
+To clarify the significance of the effect of property type on unit #, I will use the broom function to identify the **p-value**.
+```{r}
+ 
+broom_anova <- broom::tidy(property_by_units)
+print(broom_anova)
+
+```
+The P-value is <0.001, which indicates high significance. This is identified in the far right column of the tibble produced from broom::tidy
 
 <!----------------------------------------------------------------------------->
 
